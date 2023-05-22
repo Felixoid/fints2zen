@@ -345,6 +345,7 @@ def write_config(filename: str) -> dict:
         config["bank"]["username"],
         config["bank"]["pin"],
         config["bank"]["url"],
+        product_id="9FA6681DEC0CF3046BFC2F8A6",
     )
     ibans = [a.iban for a in bank.accounts]
 
@@ -454,6 +455,7 @@ def main():
         config["bank"]["username"],
         config["bank"]["pin"],
         config["bank"]["url"],
+        product_id="9FA6681DEC0CF3046BFC2F8A6",
     )
     for pair in range(len(config["accounts"])):
         z_transactions = zen.get_transactions(config["accounts"][pair][1])
