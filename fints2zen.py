@@ -122,11 +122,20 @@ class FinTs(object):
             s = search(pattern[0], string)
             if s:
                 try:
-                    date = datetime.strptime(s[0], pattern[1]).date()
+                    date_str = s[0]
+                    date = datetime.strptime(date_str, pattern[1]).date()
                 except ValueError:
-                    # Trying to mitigate bools-t like 08.12360904ARN
-                    date = datetime.strptime(s[0][:5], "%d.%m").date()
-        if not date:
+                    try:
+                        # Trying to mitigate bools-t like 08.12360904ARN
+                        date_str = date_str[:5]
+                        date = datetime.strptime(date_str, "%d.%m").date()
+                    except ValueError:
+                        # So, here's another bools-t.
+                        # 29.02 is out of range, so the year must be passed
+                        date_str = f"{date_str}.{datetime.now().year}"
+                        date = datetime.strptime(date_str, "%d.%m.%Y").date()
+
+        if date is None:
             date = booking_date
         if date.year == 1900:
             if booking_date.month == 1 and date.month == 12:
