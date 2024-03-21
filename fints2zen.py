@@ -101,6 +101,7 @@ class FinTs(object):
             str(pin),
             str(url),
             *args,
+            product_id="9FA6681DEC0CF3046BFC2F8A6",
             **kwargs,
         )
         self.accounts = _fints.get_sepa_accounts()
@@ -341,9 +342,7 @@ def write_config(filename: str) -> dict:
     Fill the config with user input
     """
     config = {"bank": {}, "zenmoney": {}, "accounts": []}  # type: dict
-    print(
-        "Filling up the config from the input.\n" "Please, enter your bank credentials"
-    )
+    print("Filling up the config from the input.\nPlease, enter your bank credentials")
     config["bank"]["blz"] = int(input("  Please, enter blz (int): "))
     config["bank"]["username"] = str(input("  Please, enter username: "))
     config["bank"]["pin"] = str(input("  Please, enter pin: "))
@@ -354,7 +353,6 @@ def write_config(filename: str) -> dict:
         config["bank"]["username"],
         config["bank"]["pin"],
         config["bank"]["url"],
-        product_id="9FA6681DEC0CF3046BFC2F8A6",
     )
     ibans = [a.iban for a in bank.accounts]
 
@@ -464,7 +462,6 @@ def main():
         config["bank"]["username"],
         config["bank"]["pin"],
         config["bank"]["url"],
-        product_id="9FA6681DEC0CF3046BFC2F8A6",
     )
     for pair in range(len(config["accounts"])):
         z_transactions = zen.get_transactions(config["accounts"][pair][1])
