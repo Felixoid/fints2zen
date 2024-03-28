@@ -5,6 +5,7 @@
 import os
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, Namespace
 from datetime import datetime
+from getpass import getpass
 from pprint import pprint
 from re import search
 from sys import exit, stderr
@@ -346,7 +347,7 @@ def write_config(filename: str) -> dict:
     print("Filling up the config from the input.\nPlease, enter your bank credentials")
     config["bank"]["blz"] = int(input("  Please, enter blz (int): "))
     config["bank"]["username"] = str(input("  Please, enter username: "))
-    config["bank"]["pin"] = str(input("  Please, enter pin: "))
+    config["bank"]["pin"] = getpass("  Please, enter pin: ")
     config["bank"]["url"] = str(input("  Please, enter url: "))
     print("Checking finTS credentials")
     bank = FinTs(
@@ -359,17 +360,17 @@ def write_config(filename: str) -> dict:
 
     print("Do you have a zenmoney oauth2 token?")
     if bool(int(input("1=Yes, 0=No [_1_/0]: ") or 1)):
-        config["zenmoney"]["token"] = str(input("  Please, enter token: "))
+        config["zenmoney"]["token"] = getpass("  Please, enter token: ")
     else:
         print(
             "You should register your application for zenmoney API,"
             "visit the page http://api.zenmoney.ru/consumer.html\n\n"
             "Please, enter necessary information to generate user token"
         )
-        key = str(input("  Please, enter consumer_key: "))
-        secret = str(input("  Please, enter consumer_secret: "))
-        username = str(input("  Please, enter zenmoney username: "))
-        password = str(input("  Please, enter zenmoney password: "))
+        key = getpass("  Please, enter consumer_key: ")
+        secret = getpass("  Please, enter consumer_secret: ")
+        username = getpass("  Please, enter zenmoney username: ")
+        password = getpass("  Please, enter zenmoney password: ")
         oauth = OAuth2(key, secret, username, password)
         config["zenmoney"]["token"] = oauth.token
 
