@@ -3,24 +3,25 @@
 
 #  from argparse import ArgumentParser
 import os
-from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
-from cerberus import Validator
+from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, Namespace
 from datetime import datetime
-from fints.client import FinTS3PinTanClient
 from pprint import pprint
 from re import search
 from sys import exit, stderr
 from uuid import uuid4
-from yaml import safe_load, dump
+
+from cerberus import Validator
+from fints.client import FinTS3PinTanClient
+from yaml import dump, safe_load
 from yaml.scanner import ScannerError
 from zenmoney import (
     Diff,
     OAuth2,
     Request,
     Transaction,
+    ZenMoneyException,
     ZenObjectsList,
     timestamp,
-    ZenMoneyException,
 )
 
 """
