@@ -4,6 +4,7 @@
 #  from argparse import ArgumentParser
 import os
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, Namespace
+from datetime import date as dtd
 from datetime import datetime
 from getpass import getpass
 from pprint import pprint
@@ -80,12 +81,13 @@ class FinTs(object):
         (r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d", "%Y-%m-%dT%H:%M:%S"),
         (r"\d{4}\.\d\d\.\d\dT\d\d\.\d\d\.\d\d", "%Y.%m.%dT%H.%M.%S"),
         (r"\d\d\.\d\d \d{6}", "%d.%m %H%M%S"),  # 14.02 163532 : 14.02163532ARN
-        (r"\d\d\.\d{8}ARN", "%d.%m%H%M%SARN"),  # 21.02164412ARN
         (r"\d\d\.\d\d \d\d\.\d\d", "%d.%m %H.%M"),  # 12.02 09.56
         # 08.01 09:00 : 08.0109.00
         (r" \d\d\.\d\d \d\d:\d\d ", " %d.%m %H:%M "),
         (r" \d\d\.\d{4}\.\d\d ", " %d.%m%H.%M "),  # 08.0109.00
         (r"\d\d\.\d\d\.\d{4}", "%d.%m.%Y"),  # 01.02.2019
+        (r"\d\d\.\d\d ", "%d.%m "),  # '14.02 '
+        (r"\d\d\.\d{8}ARN", "%d.%m%H%M%SARN"),  # 21.02164412ARN
     )
 
     transaction_types = (  # Type by posting_text
@@ -113,30 +115,52 @@ class FinTs(object):
             self.balance[a.iban] = _fints.get_balance(a)
             self.transactions[a.iban] = _fints.get_transactions(a)
 
-    def _get_date(self, string, booking_date):
+    @staticmethod
+    def _get_date(string: str, booking_date: dtd) -> str:
         """
         Accepts array from transaction info, returns the date
         First tries to get data from regexp+string format
         Then removes spaces from info string and tries to get isoformat
         Then returns date 'Buchung' (booking)
         """
+
+        def general_match(date_str: str, date_fmt: str) -> dtd:
+            return datetime.strptime(date_str, date_fmt).date()
+
+        def arn_match(date_str: str, date_fmt: str) -> dtd:
+            if date_str.endswith("ARN") and date_fmt.endswith("ARN"):
+                # Trying to mitigate bools-t like 08.12360904ARN
+                date_str = date_str[:5]
+                date_fmt = "%d.%m"
+                try:
+                    return datetime.strptime(date_str, date_fmt).date()
+                except ValueError:
+                    return leap_year(date_str, "%d.%m")
+            raise ValueError("Non-ARN")
+
+        def leap_year(date_str: str, date_fmt: str) -> dtd:
+            if "29.02" in date_str:
+                # So, here's another bools-t.
+                # 29.02 is out of range, so the year must be passed
+                yr = datetime.now().year
+                date_str = f"{date_str}.{yr}"
+                return datetime.strptime(date_str, f"{date_fmt}.%Y").date()
+            raise ValueError("Non-leap year")
+
+        funcs = (general_match, arn_match, leap_year)
+
         date = None
         for pattern in FinTs.date_patterns:
             s = search(pattern[0], string)
             if s:
-                try:
-                    date_str = s[0]
-                    date = datetime.strptime(date_str, pattern[1]).date()
-                except ValueError:
+                for f in funcs:
                     try:
-                        # Trying to mitigate bools-t like 08.12360904ARN
-                        date_str = date_str[:5]
-                        date = datetime.strptime(date_str, "%d.%m").date()
+                        date = f(s[0], pattern[1])
+                        break
                     except ValueError:
-                        # So, here's another bools-t.
-                        # 29.02 is out of range, so the year must be passed
-                        date_str = f"{date_str}.{datetime.now().year}"
-                        date = datetime.strptime(date_str, "%d.%m.%Y").date()
+                        continue
+                if date is not None:
+                    break
 
         if date is None:
             date = booking_date
@@ -147,7 +171,9 @@ class FinTs(object):
                 date = date.replace(year=booking_date.year)
         return str(date)
 
-    def get_transactions(self, iban: str, account_uuid: str, transfer_uuid: str):
+    def get_transactions(
+        self, iban: str, account_uuid: str, transfer_uuid: str
+    ) -> InterTransactions:
         """
         iban: the IBAN number in account
         account_uuid: account ID in zenmoney for the IBAN
