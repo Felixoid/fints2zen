@@ -484,7 +484,8 @@ def serial_send(zen: Zen, transactions: list) -> None:
 def main():
     args = parse_args()
     config = get_config(args.config)
-    zen = Zen(config["zenmoney"]["token"], 1)
+    server_timestamp = int(datetime.now().timestamp() - (3600 * 24 * 365 * 3))
+    zen = Zen(config["zenmoney"]["token"], server_timestamp)
     bank = FinTs(
         config["bank"]["blz"],
         config["bank"]["username"],
