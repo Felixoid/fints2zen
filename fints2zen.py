@@ -77,8 +77,7 @@ class FinTs(object):
     """
 
     date_patterns = (
-        # 2019-02-12T17:05:47 \/
-        (r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d", "%Y-%m-%dT%H:%M:%S"),
+        (r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d", "%Y-%m-%dT%H:%M:%S"),  # 2019-02-12T17:05:47
         (r"\d{4}\.\d\d\.\d\dT\d\d\.\d\d\.\d\d", "%Y.%m.%dT%H.%M.%S"),
         (r"\d\d\.\d\d \d{6}", "%d.%m %H%M%S"),  # 14.02 163532 : 14.02163532ARN
         (r"\d\d\.\d\d \d\d\.\d\d", "%d.%m %H.%M"),  # 12.02 09.56
@@ -308,7 +307,7 @@ v = Validator(
             "type": "dict",
             "required": True,
             "schema": {
-                "blz": {"required": True, "type": "integer"},
+                "blz": {"required": True, "type": "string"},
                 "username": {
                     "required": True,
                     "anyof_type": ["string", "integer"],
